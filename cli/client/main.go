@@ -65,12 +65,12 @@ func loadData(path string) ([]Tuple2, error) {
 func main() {
 	ctx := context.TODO()
 
-	my_count_64, _ := strconv.ParseInt(os.Args[1], 10, 0)
+	my_count_64, _ := strconv.ParseInt(os.Getenv("MY_COUNT"), 10, 0)
 	my_count := int(my_count_64)
-	my_host := os.Args[2]
-	my_input_file := os.Args[3]
-	my_map_name_default := os.Args[4]
-	my_near_cache := os.Args[5]
+	my_host := os.Getenv("MY_HOST")
+	my_input_file := os.Getenv("MY_INPUT_FILE")
+	my_map_name_default := os.Getenv("MY_MAP_NAME")
+	my_near_cache := os.Getenv("MY_NEAR_CACHE")
 
 	fmt.Printf("--------------------------------------\n")
 	fmt.Printf("my_count '%d'\n", my_count)
