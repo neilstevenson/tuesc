@@ -17,7 +17,9 @@ import (
 )
 
 const loggingLevel = logger.InfoLevel
-const MAX = 1_000_000
+
+//const MAX = 1_000_000
+const MAX = 10_000
 const SLOW_THRESHOLD_NANOS = 500_000
 
 type Tuple2 struct {
@@ -71,6 +73,7 @@ func main() {
 	my_input_file := os.Getenv("MY_INPUT_FILE")
 	my_map_name_default := os.Getenv("MY_MAP_NAME")
 	my_near_cache := os.Getenv("MY_NEAR_CACHE")
+	my_reconnect := os.Getenv("")
 
 	fmt.Printf("--------------------------------------\n")
 	fmt.Printf("my_count '%d'\n", my_count)
@@ -78,6 +81,7 @@ func main() {
 	fmt.Printf("my_input_file '%s'\n", my_input_file)
 	fmt.Printf("my_map_name_default '%s'\n", my_map_name_default)
 	fmt.Printf("my_near_cache '%s'\n", my_near_cache)
+	fmt.Printf("my_reconnect '%s'\n", my_reconnect)
 	fmt.Printf("--------------------------------------\n")
 
 	hazelcastClient := getClient(ctx, my_host)
@@ -114,7 +118,7 @@ func main() {
 	wg := &sync.WaitGroup{}
 	wg.Add(my_count)
 	for i := 0; i < my_count; i++ {
-		go worker(i, my_map_name_default, hazelcastClient, tuples, wg)
+		go worker(i, my_map_name_default, hazelcastClient, tuples, wg, my_reconnect, my_host)
 	}
 	wg.Wait()
 
@@ -131,11 +135,13 @@ func main() {
 	hazelcastClient.Shutdown(ctx)
 }
 
-func worker(id int, my_map_name_default string, client *hazelcast.Client, tuples []Tuple2, wg *sync.WaitGroup) {
+func worker(id int, my_map_name_default string, client *hazelcast.Client, tuples []Tuple2, wg *sync.WaitGroup,
+	my_reconnect string, my_host string) {
 	var total int64 = 0
 	var worst int64 = math.MinInt64
 	var best int64 = math.MaxInt64
 	var slow int64 = 0
+	var clientEffective = client
 
 	ctx := context.Background()
 	le := len(tuples)
@@ -158,10 +164,16 @@ func worker(id int, my_map_name_default string, client *hazelcast.Client, tuples
 		}
 
 		tic := time.Now()
-		m, _ := client.GetMap(ctx, map_name)
+		if len(my_reconnect) > 0 {
+			clientEffective = getClient(ctx, my_host)
+		}
+		m, _ := clientEffective.GetMap(ctx, map_name)
 		v, _ := m.Get(ctx, key)
 		toc := time.Now()
 		elapsed := toc.Sub(tic).Nanoseconds()
+		if len(my_reconnect) > 0 {
+			clientEffective.Shutdown(ctx)
+		}
 		if v == nil {
 			fmt.Printf("Nil for %s %s\n", map_name, key)
 		}
@@ -180,7 +192,7 @@ func worker(id int, my_map_name_default string, client *hazelcast.Client, tuples
 			}
 		}
 
-		if i%100_000 == 0 {
+		if i%(MAX/10) == 0 {
 			log_now := time.Now().Format(time.RFC3339)
 			fmt.Printf("%d - Worker - count %d (max %d) %s map '%s' key '%s'\n",
 				id, i, MAX, log_now, map_name, key)
