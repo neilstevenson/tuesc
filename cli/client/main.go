@@ -35,7 +35,7 @@ func getClient(ctx context.Context, my_host string) *hazelcast.Client {
 	my_log_level := os.Getenv("MY_LOG_LEVEL")
 
 	config := hazelcast.Config{}
-	config.ClientName = "neil-go"
+	config.ClientName = "tuesc"
 	config.Cluster.Name = "dev"
 	config.Cluster.Network.SetAddresses(my_host)
 	if len(my_log_level) > 0 {
@@ -53,7 +53,6 @@ func getClient(ctx context.Context, my_host string) *hazelcast.Client {
 			Name:     my_near_cache,
 			Eviction: ec,
 		}
-		ncc.SetInvalidateOnChange(true)
 		config.AddNearCache(ncc)
 	}
 	if len(my_near_cache2) > 0 {
@@ -64,7 +63,6 @@ func getClient(ctx context.Context, my_host string) *hazelcast.Client {
 			Name:     my_near_cache2,
 			Eviction: ec,
 		}
-		ncc.SetInvalidateOnChange(true)
 		config.AddNearCache(ncc)
 	}
 
