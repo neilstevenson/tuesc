@@ -178,12 +178,12 @@ func worker(id int, my_map_name_default string, client *hazelcast.Client, tuples
 			if elapsed > SLOW_THRESHOLD_NANOS {
 				slow++
 			}
+		}
 
-			if i%100_000 == 0 {
-				log_now := time.Now().Format(time.RFC3339)
-				fmt.Printf("%d - Worker - count %d (max %d) %s map '%s' key '%s'\n",
-					id, i, MAX, log_now, map_name, key)
-			}
+		if i%100_000 == 0 {
+			log_now := time.Now().Format(time.RFC3339)
+			fmt.Printf("%d - Worker - count %d (max %d) %s map '%s' key '%s'\n",
+				id, i, MAX, log_now, map_name, key)
 		}
 	}
 
