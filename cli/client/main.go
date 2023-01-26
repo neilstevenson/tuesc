@@ -19,7 +19,8 @@ import (
 const loggingLevel = logger.InfoLevel
 
 //const MAX = 1_000_000
-const MAX = 10_000
+const MAX = 1000
+const SLEEP = 20
 const SLOW_THRESHOLD_NANOS = 500_000
 
 type Tuple2 struct {
@@ -196,6 +197,9 @@ func worker(id int, my_map_name_default string, client *hazelcast.Client, tuples
 			log_now := time.Now().Format(time.RFC3339)
 			fmt.Printf("%d - Worker - count %d (max %d) %s map '%s' key '%s'\n",
 				id, i, MAX, log_now, map_name, key)
+		}
+		if SLEEP > 0 {
+			time.Sleep(SLEEP * time.Millisecond)
 		}
 	}
 
