@@ -14,13 +14,16 @@ import (
 
 	"github.com/hazelcast/hazelcast-go-client"
 	"github.com/hazelcast/hazelcast-go-client/logger"
+	"github.com/hazelcast/hazelcast-go-client/nearcache"
 )
 
 const loggingLevel = logger.InfoLevel
 
-//const MAX = 1_000_000
-const MAX = 1000
-const SLEEP = 20
+const MAX = 1_000_000
+
+//const MAX = 1_000
+const NEAR_CACHE_SIZE = 50_000
+const SLEEP = 0
 const SLOW_THRESHOLD_NANOS = 500_000
 
 type Tuple2 struct {
@@ -29,12 +32,39 @@ type Tuple2 struct {
 }
 
 func getClient(ctx context.Context, my_host string) *hazelcast.Client {
+	my_near_cache := os.Getenv("MY_NEAR_CACHE")
+	my_near_cache2 := os.Getenv("MY_NEAR_CACHE2")
+
 	config := hazelcast.Config{}
 	config.ClientName = "neil-go"
 	config.Cluster.Name = "dev"
 	config.Cluster.Network.SetAddresses(my_host)
 	config.Logger.Level = loggingLevel
 	config.Stats.Enabled = true
+
+	if len(my_near_cache) > 0 {
+		ec := nearcache.EvictionConfig{}
+		ec.SetPolicy(nearcache.EvictionPolicyLFU)
+		ec.SetSize(NEAR_CACHE_SIZE)
+		ncc := nearcache.Config{
+			Name:     my_near_cache,
+			Eviction: ec,
+		}
+		ncc.SetInvalidateOnChange(true)
+		config.AddNearCache(ncc)
+	}
+	if len(my_near_cache2) > 0 {
+		ec := nearcache.EvictionConfig{}
+		ec.SetPolicy(nearcache.EvictionPolicyLFU)
+		ec.SetSize(NEAR_CACHE_SIZE)
+		ncc := nearcache.Config{
+			Name:     my_near_cache2,
+			Eviction: ec,
+		}
+		ncc.SetInvalidateOnChange(true)
+		config.AddNearCache(ncc)
+	}
+
 	client, err := hazelcast.StartNewClientWithConfig(ctx, config)
 	if err != nil {
 		log.Fatal(err)
@@ -74,6 +104,7 @@ func main() {
 	my_input_file := os.Getenv("MY_INPUT_FILE")
 	my_map_name_default := os.Getenv("MY_MAP_NAME")
 	my_near_cache := os.Getenv("MY_NEAR_CACHE")
+	my_near_cache2 := os.Getenv("MY_NEAR_CACHE2")
 	my_reconnect := os.Getenv("MY_RECONNECT")
 
 	fmt.Printf("--------------------------------------\n")
@@ -82,6 +113,7 @@ func main() {
 	fmt.Printf("my_input_file '%s'\n", my_input_file)
 	fmt.Printf("my_map_name_default '%s'\n", my_map_name_default)
 	fmt.Printf("my_near_cache '%s'\n", my_near_cache)
+	fmt.Printf("my_near_cache2 '%s'\n", my_near_cache2)
 	fmt.Printf("my_reconnect '%s'\n", my_reconnect)
 	fmt.Printf("--------------------------------------\n")
 
