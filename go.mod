@@ -2,7 +2,7 @@ module cli
 
 go 1.18
 
-require github.com/hazelcast/hazelcast-go-client nc-once
+require github.com/hazelcast/hazelcast-go-client v1.3.1-0.20230126151415-98f59033310f
 
 require (
 	github.com/StackExchange/wmi v0.0.0-20190523213315-cbe66965904d // indirect
