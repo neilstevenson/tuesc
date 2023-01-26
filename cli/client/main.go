@@ -17,8 +17,6 @@ import (
 	"github.com/hazelcast/hazelcast-go-client/nearcache"
 )
 
-const loggingLevel = logger.InfoLevel
-
 const MAX = 1_000_000
 
 //const MAX = 1_000
@@ -34,12 +32,17 @@ type Tuple2 struct {
 func getClient(ctx context.Context, my_host string) *hazelcast.Client {
 	my_near_cache := os.Getenv("MY_NEAR_CACHE")
 	my_near_cache2 := os.Getenv("MY_NEAR_CACHE2")
+	my_log_level := os.Getenv("MY_LOG_LEVEL")
 
 	config := hazelcast.Config{}
 	config.ClientName = "neil-go"
 	config.Cluster.Name = "dev"
 	config.Cluster.Network.SetAddresses(my_host)
-	config.Logger.Level = loggingLevel
+	if len(my_log_level) > 0 {
+		config.Logger.Level = logger.DebugLevel
+	} else {
+		config.Logger.Level = logger.InfoLevel
+	}
 	config.Stats.Enabled = true
 
 	if len(my_near_cache) > 0 {
@@ -106,6 +109,7 @@ func main() {
 	my_near_cache := os.Getenv("MY_NEAR_CACHE")
 	my_near_cache2 := os.Getenv("MY_NEAR_CACHE2")
 	my_reconnect := os.Getenv("MY_RECONNECT")
+	my_log_level := os.Getenv("MY_LOG_LEVEL")
 
 	fmt.Printf("--------------------------------------\n")
 	fmt.Printf("my_count '%d'\n", my_count)
@@ -115,6 +119,7 @@ func main() {
 	fmt.Printf("my_near_cache '%s'\n", my_near_cache)
 	fmt.Printf("my_near_cache2 '%s'\n", my_near_cache2)
 	fmt.Printf("my_reconnect '%s'\n", my_reconnect)
+	fmt.Printf("my_log_level '%s'\n", my_log_level)
 	fmt.Printf("--------------------------------------\n")
 
 	hazelcastClient := getClient(ctx, my_host)
