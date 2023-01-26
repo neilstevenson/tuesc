@@ -73,7 +73,7 @@ func main() {
 	my_input_file := os.Getenv("MY_INPUT_FILE")
 	my_map_name_default := os.Getenv("MY_MAP_NAME")
 	my_near_cache := os.Getenv("MY_NEAR_CACHE")
-	my_reconnect := os.Getenv("")
+	my_reconnect := os.Getenv("MY_RECONNECT")
 
 	fmt.Printf("--------------------------------------\n")
 	fmt.Printf("my_count '%d'\n", my_count)
